@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>投資家タイプ診断</title>
+<meta property="og:title" content="投資家タイプ診断">
+<meta property="og:description" content="12問に答えるだけ。あなたの投資スタイルが明らかに。">
+<meta property="og:image" content="https://matsu-stock.github.io/investor-quiz-/images/ogp.png">
+<meta property="og:url" content="https://matsu-stock.github.io/investor-quiz-/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://matsu-stock.github.io/investor-quiz-/images/ogp.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
 
@@ -412,7 +419,7 @@ function showResult() {
     resultEl.querySelector('.result-card').classList.add('fade-in');
 
     document.getElementById('share-btn-x').addEventListener('click', () => {
-      const text = `【投資家タイプ診断】\n私は ${t.icon}「${t.name}」タイプでした！\n\n"${t.tagline}"\n\nあなたのタイプは？👇\n#投資家タイプ診断 #まつ #投資`;
+      const text = `【投資家タイプ診断】\n私は ${t.icon}「${t.name}」タイプでした！\n\n"${t.tagline}"\n\nあなたのタイプは？👇\nhttps://matsu-stock.github.io/investor-quiz-/\n#投資家タイプ診断 #まつ #投資`;
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
     });
     document.getElementById('retry-btn').addEventListener('click', retryQuiz);
