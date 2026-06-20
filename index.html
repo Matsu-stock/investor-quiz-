@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投資家タイプ診断</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+  :root {
+    --navy: #0D1B2A;
+    --navy-mid: #1A2F45;
+    --gold: #D4A940;
+    --gold-light: #F0C96B;
+    --green: #2ECC8F;
+    --slate: #8B9DB3;
+    --white: #F4F7FA;
+    --card-bg: #162236;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  .title-block { text-align: center; margin-bottom: 32px; }
+  .title-block h1 { font-size: clamp(22px, 5vw, 32px); font-weight: 900; line-height: 1.3; }
+  .title-block h1 span { color: var(--gold); }
+  .subtitle { margin-top: 8px; font-size: 13px; color: var(--slate); line-height: 1.7; }
+
+  .progress-wrap { width: 100%; max-width: 560px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .progress-label { font-size: 12px; color: var(--slate); }
+  .progress-bar { width: 100%; max-width: 560px; height: 4px; background: var(--navy-mid); border-radius: 4px; margin-bottom: 24px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 4px; transition: width 0.4s ease; }
+
+  .card { background: var(--card-bg); border: 1px solid #243650; border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 560px; }
+  .q-number { font-size: 11px; letter-spacing: 2px; color: var(--gold); margin-bottom: 12px; font-weight: 700; }
+  .q-text { font-size: clamp(15px, 4vw, 17px); font-weight: 700; line-height: 1.7; margin-bottom: 20px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: var(--navy-mid); border: 1.5px solid #2D4460; border-radius: 10px;
+    padding: 14px 16px; color: var(--white); font-family: inherit; font-size: 14px;
+    line-height: 1.5; text-align: left; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.1s;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .option-btn:hover { border-color: var(--gold); background: #1e3250; transform: translateY(-1px); }
+  .option-btn.selected { border-color: var(--gold); background: rgba(212,169,64,0.12); }
+  .option-btn:disabled { cursor: default; transform: none; }
+  .option-label {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+    background: #2D4460; color: var(--slate); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+  .option-btn.selected .option-label { background: var(--gold); color: var(--navy); }
+
+  /* RESULT */
+  #result { display: none; width: 100%; max-width: 560px; }
+  .result-card { background: var(--card-bg); border: 1px solid #243650; border-radius: 16px; padding: 32px 24px; text-align: center; }
+  .result-badge { display: inline-block; font-size: 11px; letter-spacing: 3px; color: var(--gold); border: 1px solid var(--gold); border-radius: 99px; padding: 4px 14px; margin-bottom: 20px; font-weight: 700; }
+  .result-icon { margin-bottom: 20px; display: flex; justify-content: center; }
+  .result-icon img { width: 200px; height: 200px; object-fit: cover; border-radius: 16px; box-shadow: 0 0 32px rgba(0,0,0,0.6); }
+  .result-type { font-size: clamp(22px, 6vw, 30px); font-weight: 900; line-height: 1.3; margin-bottom: 8px; }
+  .result-type span { color: var(--gold); }
+  .result-tagline { font-size: 13px; color: var(--gold-light); font-weight: 700; margin-bottom: 20px; font-style: italic; line-height: 1.6; }
+  .divider { height: 1px; background: #243650; margin: 20px 0; }
+  .result-desc { font-size: 14px; line-height: 1.9; color: #b8c9de; text-align: left; margin-bottom: 24px; }
+
+  .stats-row { display: flex; gap: 10px; margin-bottom: 24px; }
+  .stat-box { flex: 1; background: var(--navy-mid); border-radius: 10px; padding: 12px 8px; text-align: center; }
+  .stat-label { font-size: 10px; color: var(--slate); margin-bottom: 6px; }
+  .stat-val { font-size: 13px; font-weight: 900; line-height: 1.3; }
+
+  .advice-box { background: rgba(212,169,64,0.08); border-left: 3px solid var(--gold); border-radius: 8px; padding: 14px 16px; text-align: left; margin-bottom: 28px; }
+  .advice-box p { font-size: 13px; line-height: 1.9; color: #c5d4e8; }
+  .advice-box strong { color: var(--gold-light); }
+
+  .share-btn { display: block; width: 100%; padding: 16px; border-radius: 12px; border: 1.5px solid #333; background: #000; color: #fff; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s, transform 0.1s; margin-bottom: 10px; }
+  .share-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .retry-btn { display: block; width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid #2D4460; background: transparent; color: var(--slate); font-family: inherit; font-size: 14px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+  .retry-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-note { margin-top: 16px; font-size: 11px; color: var(--slate); text-align: center; line-height: 1.7; }
+
+  /* INTRO */
+  #intro { width: 100%; max-width: 560px; }
+  .intro-card { background: var(--card-bg); border: 1px solid #243650; border-radius: 16px; padding: 32px 24px; text-align: center; }
+  .intro-icon { font-size: 52px; margin-bottom: 16px; }
+  .intro-card h2 { font-size: 20px; font-weight: 900; margin-bottom: 14px; line-height: 1.5; }
+  .intro-card h2 span { color: var(--gold); }
+  .intro-card p { font-size: 14px; color: #9eb3cc; line-height: 1.9; margin-bottom: 24px; }
+
+.start-btn { display: block; width: 100%; padding: 16px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy); font-family: inherit; font-size: 16px; font-weight: 900; cursor: pointer; letter-spacing: 1px; transition: opacity 0.2s, transform 0.1s; }
+  .start-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+  .fade-in { animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="title-block">
+  <h1><span>投資家タイプ</span>診断</h1>
+  <p class="subtitle">12問に答えるだけ。あなたの投資スタイルが明らかに。</p>
+</div>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-card fade-in">
+    <div class="intro-icon">📊</div>
+    <h2>あなたは<span>どの投資家</span>タイプ？</h2>
+    <p>
+      「なんとなく積み立ててるけど、これで合ってる？」<br>
+      「自分の投資スタイル、実はよくわかってない」<br><br>
+      そんな方、多いんじゃないかと思います。<br>
+      12問に答えて、あなたのタイプを見える化しましょう。
+    </p>
+    <button class="start-btn" onclick="startQuiz()">診断スタート →</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" style="display:none; width:100%; max-width:560px;">
+  <div class="progress-wrap">
+    <span class="progress-label" id="prog-label">1 / 12</span>
+    <span class="progress-label" id="prog-pct">0%</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="card fade-in" id="question-card">
+    <p class="q-number" id="q-number">Q 01</p>
+    <p class="q-text" id="q-text"></p>
+    <div class="options" id="options"></div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result">
+  <div class="result-card fade-in" id="result-inner"></div>
+</div>
+
+<script>
+// A=亀仙人 B=配当ドラゴン C=グロースウルフ D=フクロウ博士
+const questions = [
+  {
+    text: "株価が急落して含み損が20%になりました。正直、どうしますか？",
+    options: [
+      { text: "長期で見れば問題ない。じっと耐える", scores: { A:3, B:1, C:0, D:1 } },
+      { text: "配当が続くなら株価は気にしない", scores: { A:1, B:3, C:0, D:0 } },
+      { text: "成長ストーリーが変わってないなら買い増す", scores: { A:0, B:0, C:3, D:1 } },
+      { text: "データと財務を再確認してから判断する", scores: { A:1, B:0, C:1, D:3 } },
+    ]
+  },
+  {
+    text: "投資先を選ぶとき、一番最初に見るのはどれですか？",
+    options: [
+      { text: "長期の事業成長力・ビジネスモデル", scores: { A:3, B:0, C:1, D:1 } },
+      { text: "配当利回りと配当継続性", scores: { A:0, B:3, C:0, D:1 } },
+      { text: "市場規模と成長スピード", scores: { A:0, B:0, C:3, D:1 } },
+      { text: "財務諸表と収益の安定性", scores: { A:1, B:1, C:0, D:3 } },
+    ]
+  },
+  {
+    text: "1年間で期待するリターンはどのくらいですか？",
+    options: [
+      { text: "年5〜8%。インデックス並みで十分", scores: { A:3, B:1, C:0, D:0 } },
+      { text: "年4〜6%の配当収入が安定してれば◎", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "年20〜30%以上を狙いたい", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "まずは負けない運用。勝率を高めたい", scores: { A:1, B:1, C:0, D:3 } },
+    ]
+  },
+  {
+    text: "投資の情報収集、主にどこでしていますか？",
+    options: [
+      { text: "長期投資家のブログ・書籍", scores: { A:3, B:1, C:0, D:1 } },
+      { text: "高配当サイトや配当利回りランキング", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "X（旧Twitter）の株クラ・決算ツイート", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "有価証券報告書・企業IRを直接読む", scores: { A:1, B:1, C:0, D:3 } },
+    ]
+  },
+  {
+    text: "ポートフォリオの銘柄数、理想はどのくらいですか？",
+    options: [
+      { text: "インデックス中心で幅広く分散", scores: { A:3, B:0, C:0, D:1 } },
+      { text: "高配当株を20〜30銘柄に分散", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "成長株3〜5銘柄に集中投資", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "根拠がある銘柄に絞って10銘柄前後", scores: { A:1, B:1, C:1, D:3 } },
+    ]
+  },
+  {
+    text: "「テンバガー（10倍株）」という言葉を聞いてどう感じますか？",
+    options: [
+      { text: "夢があるけど自分には縁がなさそう", scores: { A:3, B:2, C:0, D:0 } },
+      { text: "それより安定配当の方が現実的で好き", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "それを狙うのが投資の醍醐味だ！", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "財務と事業モデルを分析してから判断する", scores: { A:0, B:0, C:1, D:3 } },
+    ]
+  },
+  {
+    text: "投資に使う資金の管理、どうしていますか？",
+    options: [
+      { text: "毎月決まった額を積み立てている", scores: { A:3, B:1, C:0, D:1 } },
+      { text: "配当が出る分だけ再投資に回している", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "チャンスとみたら集中して入れる", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "ルールを決めて機械的に管理している", scores: { A:1, B:1, C:0, D:3 } },
+    ]
+  },
+  {
+    text: "損切りルールを持っていますか？",
+    options: [
+      { text: "長期前提なので基本売らない。ルールは不要", scores: { A:3, B:1, C:0, D:0 } },
+      { text: "減配・無配になったら売るとだけ決めている", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "明確な損切りラインを事前に設定している", scores: { A:0, B:0, C:3, D:1 } },
+      { text: "財務悪化など根拠が崩れたら売るルールがある", scores: { A:1, B:1, C:0, D:3 } },
+    ]
+  },
+  {
+    text: "投資で一番後悔したこと（またはしそうなこと）は？",
+    options: [
+      { text: "良い銘柄を焦って早く売りすぎた", scores: { A:3, B:1, C:1, D:0 } },
+      { text: "減配・無配になって収入が激減した", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "成長株を信じすぎて高値掴みした", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "根拠なく売買して後で後悔した", scores: { A:1, B:0, C:1, D:3 } },
+    ]
+  },
+  {
+    text: "投資の勉強、今どんな方法でしていますか？",
+    options: [
+      { text: "長期投資・インデックスの本を読んでいる", scores: { A:3, B:1, C:0, D:1 } },
+      { text: "高配当投資の実績や本を参考にしている", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "成長企業・ビジネスモデルを研究している", scores: { A:0, B:0, C:3, D:1 } },
+      { text: "財務諸表の読み方を徹底的に学んでいる", scores: { A:0, B:0, C:0, D:3 } },
+    ]
+  },
+  {
+    text: "相場が好調で資産が増えているとき、どうしますか？",
+    options: [
+      { text: "特に何もしない。いつも通り積み立てる", scores: { A:3, B:1, C:0, D:0 } },
+      { text: "配当を再投資してさらに複利を回す", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "利確して次の成長株に乗り換える", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "割高になってないか冷静に分析する", scores: { A:1, B:0, C:0, D:3 } },
+    ]
+  },
+  {
+    text: "5年後、どんな投資家になっていたいですか？",
+    options: [
+      { text: "資産を着実に2倍以上に増やしている", scores: { A:3, B:1, C:1, D:1 } },
+      { text: "配当金で生活費の一部をまかなえている", scores: { A:0, B:3, C:0, D:0 } },
+      { text: "大きな成長株を当てて資産を急拡大させた", scores: { A:0, B:0, C:3, D:0 } },
+      { text: "自分だけの投資ロジックを確立している", scores: { A:1, B:0, C:0, D:3 } },
+    ]
+  },
+];
+
+
+const types = {
+  A: {
+    icon: "🐢",
+    image: "images/turtle.png",
+    name: "コツコツ亀仙人",
+    tagline: "急がば回れ。10年後に笑う男。",
+    desc: "あなたは「長期・積立・分散」を地でいく、投資の王道を歩む人です。\n\n相場の上げ下げに動じず、コツコツと資産を積み上げていく忍耐力が最大の武器。派手さはないけど、10年後に一番笑っているのはこのタイプだと思ってます。\n\nまつが目指しているのもこのスタンス。「地味だけど、これが一番強い」と痛感してます。",
+    risk: "低め",
+    horizon: "10年以上",
+    style: "積立・長期",
+    color: "#2ECC8F",
+    advice: "あなたの強みは<strong>「続けられること」</strong>です。\nただ、現金で眠らせすぎるとインフレに負けてしまいます。生活防衛資金以外はしっかり市場に置いておきましょう。"
+  },
+  B: {
+    icon: "🐉",
+    image: "images/dragon.png",
+    name: "配当ドラゴン",
+    tagline: "不労所得で家族を守る守護龍。",
+    desc: "あなたの投資の軸は「安定した配当収入」です。\n\n株価の上下より、毎月・毎年の配当がちゃんと入ってくることに安心感を覚えるタイプ。家族を守りながらリスクを取りすぎずに資産を育てる姿勢、まつは「このスタンス、すごく大事だと思う」と感じてます。\n\n焦らず、守りながら増やす。それが配当ドラゴンの流儀です。",
+    risk: "低め",
+    horizon: "長期・継続",
+    style: "高配当投資",
+    color: "#E05C5C",
+    advice: "<strong>減配リスクへの備え</strong>を忘れずに。\n1社に依存しすぎず、配当の安定性・業績・財務健全性をチェックしながら銘柄を分散させることが長く続けるコツです。"
+  },
+  C: {
+    icon: "🐺",
+    image: "images/wolf.png",
+    name: "グロースウルフ",
+    tagline: "群れを抜け出す成長株ハンター。",
+    desc: "あなたは市場よりも先に「次の大きな成長企業」を見つけ出そうとする、攻めの投資家です。\n\nテンバガーへの嗅覚と、リスクを受け入れるメンタルが強み。相場の波に乗れた時の爆発力は他のタイプにはない魅力があります。\n\nただ、高値掴みや損切りの遅れで大きくやられるリスクも隣り合わせ。「信念」と「ルール」の両立が鍵です。",
+    risk: "高め",
+    horizon: "1〜3年",
+    style: "成長株・集中投資",
+    color: "#A07FF5",
+    advice: "<strong>「売り時」を事前に決めておくこと</strong>が最重要です。\n上昇中に「まだいける」と思って持ちすぎるのが最大の失敗パターン。目標株価と損切りラインを買う前に設定する習慣をつけましょう。"
+  },
+  D: {
+    icon: "🦉",
+    image: "images/owl.png",
+    name: "情報フクロウ博士",
+    tagline: "データと数字だけを信じる分析家。",
+    desc: "あなたは感覚や噂ではなく、財務諸表・業績データ・定量的な根拠に基づいて投資判断を下す、分析派の投資家です。\n\n冷静で論理的なアプローチは、長期的に安定したリターンを生みやすいスタイル。「なぜこの株を買うのか」を常に言語化できることが強みです。\n\n今まさに力をつけているフェーズの方も多いと思います。このスタンスが身につけば必ず結果に繋がります。",
+    risk: "中",
+    horizon: "中〜長期",
+    style: "ファンダメンタル分析",
+    color: "#4ABFE8",
+    advice: "<strong>「分析しすぎて動けない」</strong>には注意です。\n完璧な情報は存在しません。ある程度の確信が持てたら、少額からでも実行に移す勇気も大切にしてください。"
+  }
+};
+
+let current = 0;
+let scores = { A:0, B:0, C:0, D:0 };
+
+function startQuiz() {
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[current];
+  const labels = ['A','B','C','D'];
+  document.getElementById('q-number').textContent = `Q ${String(current+1).padStart(2,'0')}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('prog-label').textContent = `${current+1} / ${questions.length}`;
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  const optionsEl = document.getElementById('options');
+  optionsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-label">${labels[i]}</span><span>${opt.text}</span>`;
+    btn.onclick = () => selectAnswer(opt.scores, btn);
+    optionsEl.appendChild(btn);
+  });
+
+  const card = document.getElementById('question-card');
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+}
+
+function selectAnswer(ansScores, btn) {
+  document.querySelectorAll('.option-btn').forEach(b => { b.classList.remove('selected'); b.disabled = true; });
+  btn.classList.add('selected');
+
+  for (const [key, val] of Object.entries(ansScores)) scores[key] += val;
+
+  setTimeout(() => {
+    current++;
+    if (current < questions.length) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  }, 250);
+}
+
+function showResult() {
+  document.getElementById('prog-fill').style.width = '100%';
+  document.getElementById('prog-pct').textContent = '100%';
+
+  setTimeout(() => {
+    document.getElementById('quiz').style.display = 'none';
+    const resultEl = document.getElementById('result');
+    resultEl.style.display = 'block';
+
+    const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+    const topScore = sorted[0][1];
+    const tied = sorted.filter(([,v]) => v === topScore);
+    const topType = tied[Math.floor(Math.random() * tied.length)][0];
+    const t = types[topType];
+
+    resultEl.querySelector('#result-inner').innerHTML = `
+      <div class="result-badge">INVESTOR TYPE</div>
+      <div class="result-icon"><img src="${t.image}" alt="${t.name}"></div>
+      <div class="result-type">あなたは<br><span>「${t.name}」</span>タイプ</div>
+      <p class="result-tagline">"${t.tagline}"</p>
+      <div class="divider"></div>
+      <p class="result-desc">${t.desc.replace(/\n/g,'<br>')}</p>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-label">リスク許容度</div>
+          <div class="stat-val" style="color:${t.color}">${t.risk}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">投資期間</div>
+          <div class="stat-val" style="color:var(--gold)">${t.horizon}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">スタイル</div>
+          <div class="stat-val" style="color:var(--green);font-size:11px">${t.style}</div>
+        </div>
+      </div>
+      <div class="advice-box">
+        <p>💡 まつからひと言<br><br>${t.advice.replace(/\n/g,'<br>')}</p>
+      </div>
+      <button class="share-btn" id="share-btn-x">
+        𝕏 結果をポストする
+      </button>
+      <button class="retry-btn" id="retry-btn">もう一度診断する</button>
+      <button class="retry-btn" id="intro-btn" style="margin-top:6px">← トップに戻る</button>
+      <p class="footer-note">@matsu_fire_12｜500万→5000万を目指す30代のリアル投資記録</p>
+    `;
+    resultEl.querySelector('.result-card').classList.add('fade-in');
+
+    document.getElementById('share-btn-x').addEventListener('click', () => {
+      const text = `【投資家タイプ診断】\n私は ${t.icon}「${t.name}」タイプでした！\n\n"${t.tagline}"\n\nあなたのタイプは？👇\n#投資家タイプ診断 #まつ #投資`;
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+    });
+    document.getElementById('retry-btn').addEventListener('click', retryQuiz);
+    document.getElementById('intro-btn').addEventListener('click', goIntro);
+  }, 400);
+}
+
+function retryQuiz() {
+  current = 0;
+  scores = { A:0, B:0, C:0, D:0 };
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  document.getElementById('prog-fill').style.width = '0%';
+  showQuestion();
+}
+
+function goIntro() {
+  current = 0;
+  scores = { A:0, B:0, C:0, D:0 };
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('intro').style.display = 'block';
+}
+</script>
+</body>
+</html>
