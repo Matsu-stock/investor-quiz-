@@ -419,7 +419,7 @@ function showResult() {
     resultEl.querySelector('.result-card').classList.add('fade-in');
 
     document.getElementById('share-btn-x').addEventListener('click', () => {
-      const text = `【投資家タイプ診断】\n私は ${t.icon}「${t.name}」タイプでした！\n\n"${t.tagline}"\n\nあなたのタイプは？👇\nhttps://matsu-stock.github.io/investor-quiz-/\n#投資家タイプ診断 #まつ #投資`;
+      const text = `【投資家タイプ診断】\n私は ${t.icon}「${t.name}」タイプでした！\n\n"${t.tagline}"\n\nあなたのタイプは？👇\nhttps://matsu-stock.github.io/investor-quiz-/\n#投資家タイプ診断 #まつ #投資\n@matsu_fire_12`;
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
     });
     document.getElementById('retry-btn').addEventListener('click', retryQuiz);
